@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Processing App</title>
+</head>
+
+<body>
+    <h1>Audio Processing App</h1>
+
+    <form method="POST" action="/">
+        <label for="folder_path">Enter Folder Path:</label>
+        <input type="text" id="folder_path" name="folder_path" required>
+        <button type="submit">Process Audio</button>
+    </form>
+    
+    {% if result %}
+        <h2>Results:</h2>
+        <table border="1">
+            <tr>
+                <th>File</th>
+                <th>Text</th>
+                <th>Filtered Text</th>
+                <th>Sentiment</th>
+                <th>Rating</th>
+            </tr>
+            {% for entry in result %}
+                <tr>
+                    <td>{{ entry.file }}</td>
+                    <td>{{ entry.text }}</td>
+                    <td>{{ entry.filtered_text }}</td>
+                    <td>{{ entry.sentiment }}</td>
+                    <td>{{ entry.rating }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+    
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
+    
+    <button id="save-file-btn">Save to File</button>
+    <script>
+        document.getElementById('save-file-btn').addEventListener('click', function () {
+            let csvData = [
+                ['File', 'Text', 'Filtered Text', 'Sentiment', 'Rating']
+            ];
+            let tableData = document.querySelectorAll('table tr');
+            for (let i = 1; i < tableData.length; i++) {
+                let row = [];
+                let cols = tableData[i].querySelectorAll('td');
+                for (let j = 0; j < cols.length; j++) {
+                    row.push(cols[j].textContent);
+                }
+                csvData.push(row);
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvData.forEach(function (rowArray) {
+                let row = rowArray.join(",");
+                csvContent += row + "\r\n";
+            });
+            let encodedUri = encodeURI(csvContent);
+            let link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "exported_data.csv");
+            document.body.appendChild(link);
+            link.click();
+        });
+    </script>
+</body>
+
+</html>
